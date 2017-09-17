@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser')
+const _ = require('lodash');
 
 const { mongoose } = require('./db/mongoose')
 const Todo = require('./models/todo');
@@ -27,6 +28,7 @@ app.post('/todos', (req, res) => {
 app.get('/todos', (req, res) => {
 	Todo.find()
 		.then(todos => todos.map((todo) => ({
+			id: todo._id,
 			text: todo.text,
 			completed: todo.completed,
 			completedAt: todo.completedAt
@@ -56,6 +58,7 @@ app.get('/todos/:todoId', (req, res) => {
 
 			res.send({ 
 				todo: {
+					id: todo._id,
 					text: todo.text,
 					completed: todo.completed,
 					completedAt: todo.completedAt
@@ -84,6 +87,38 @@ app.delete('/todos/:todoId', (req, res) => {
 		})
 		.catch((err) => {
 			res.status(400).send();
+		})
+})
+
+app.patch('/todos/:todoId', (req, res) => {
+	const id = req.params.todoId;
+	const body = _.pick(req.body, ['text', 'completed']);
+
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		return res.status(404).send('id is not valid')
+	}
+
+	if (_.isBoolean(body.completed) && body.completed) {
+		body.completedAt = new Date().getTime();
+	}
+	else {
+		body.completed = false;
+		body.completedAt = null;
+	}
+
+	Todo.findById(id)
+		.then((todo) => {
+			if (!todo) {
+				return res.status(404).send();
+			}
+
+			return todo.set(body).save()
+		})
+		.then((todo) => {
+			res.send({ todo })
+		})
+		.catch((err) => {
+			res.status(400).send()
 		})
 })
 
