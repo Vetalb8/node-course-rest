@@ -67,6 +67,26 @@ app.get('/todos/:todoId', (req, res) => {
 		})
 })
 
+app.delete('/todos/:todoId', (req, res) => {
+	const id = req.params.todoId;
+
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		return res.status(404).send('id is not valid')
+	}
+
+	Todo.findByIdAndRemove(id)
+		.then((todo) => {
+			if (!todo) {
+				return res.status(404).send();
+			}
+
+			res.send(todo);
+		})
+		.catch((err) => {
+			res.status(400).send();
+		})
+})
+
 app.listen(port, () => {
 	console.log(`Started on port ${port}`)
 })
