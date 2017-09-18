@@ -4,16 +4,20 @@ const jwt = require('jsonwebtoken');
 const Todo = require('./../../models/todo');
 const User = require('./../../models/user');
 
-const todos = [{
-	_id: new mongoose.Types.ObjectId,
-	text: 'Fist test todo'
-}, {
-	_id: new mongoose.Types.ObjectId,
-	text: 'Second test todo'
-}]
-
 const userOneId = new mongoose.Types.ObjectId;
 const userTwoId = new mongoose.Types.ObjectId;
+
+const todos = [{
+	_id: new mongoose.Types.ObjectId,
+	text: 'Fist test todo',
+	_creator: userOneId
+}, {
+	_id: new mongoose.Types.ObjectId,
+	text: 'Second test todo',
+	_creator: userTwoId
+}]
+
+
 const users = [{
 	_id: userOneId,
 	email: 'vet@mail.ru',
@@ -25,7 +29,11 @@ const users = [{
 }, {
 	_id: userTwoId,
 	email: 'olya@mail.ru',
-	password: 'password2'
+	password: 'password2',
+	tokens: [{
+		access: 'auth',
+		token: jwt.sign({_id: userTwoId, access: 'auth'}, 'qwerty').toString()
+	}]
 }];
 
 const populateTodos = (done) => {

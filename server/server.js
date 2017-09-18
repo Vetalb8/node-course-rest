@@ -14,9 +14,10 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
 	const todo = new Todo({
-		text: req.body.text
+		text: req.body.text,
+		_creator: req.user._id
 	});
 
 	todo.save()
@@ -28,8 +29,8 @@ app.post('/todos', (req, res) => {
 		})
 })
 
-app.get('/todos', (req, res) => {
-	Todo.find()
+app.get('/todos', authenticate, (req, res) => {
+	Todo.find({ _creator: req.user._id })
 		.then(todos => todos.map((todo) => ({
 			id: todo._id,
 			text: todo.text,
@@ -46,14 +47,17 @@ app.get('/todos', (req, res) => {
 		})
 })
 
-app.get('/todos/:todoId', (req, res) => {
+app.get('/todos/:todoId', authenticate, (req, res) => {
 	const id = req.params.todoId;
 
 	if (!mongoose.Types.ObjectId.isValid(id)) {
 		return res.status(404).send('id is not valid')
 	}
 
-	Todo.findById(id)
+	Todo.findOne({
+		_id: id,
+		_creator: req.user._id
+	})
 		.then((todo) => {
 			if (!todo) {
 				return res.status(404).send();
@@ -73,14 +77,17 @@ app.get('/todos/:todoId', (req, res) => {
 		})
 })
 
-app.delete('/todos/:todoId', (req, res) => {
+app.delete('/todos/:todoId', authenticate, (req, res) => {
 	const id = req.params.todoId;
 
 	if (!mongoose.Types.ObjectId.isValid(id)) {
 		return res.status(404).send('id is not valid')
 	}
 
-	Todo.findByIdAndRemove(id)
+	Todo.findOneAndRemove({
+		_id: id,
+		_creator: req.user._id,
+	})
 		.then((todo) => {
 			if (!todo) {
 				return res.status(404).send();
@@ -93,7 +100,7 @@ app.delete('/todos/:todoId', (req, res) => {
 		})
 })
 
-app.patch('/todos/:todoId', (req, res) => {
+app.patch('/todos/:todoId', authenticate, (req, res) => {
 	const id = req.params.todoId;
 	const body = _.pick(req.body, ['text', 'completed']);
 
@@ -109,7 +116,10 @@ app.patch('/todos/:todoId', (req, res) => {
 		body.completedAt = null;
 	}
 
-	Todo.findById(id)
+	Todo.findOne({
+		_id: id,
+		_creator: req.user._id
+	})
 		.then((todo) => {
 			if (!todo) {
 				return res.status(404).send();
