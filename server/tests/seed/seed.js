@@ -17,14 +17,13 @@ const todos = [{
 	_creator: userTwoId
 }]
 
-
 const users = [{
 	_id: userOneId,
 	email: 'vet@mail.ru',
 	password: 'password1',
 	tokens: [{
 		access: 'auth',
-		token: jwt.sign({_id: userOneId, access: 'auth'}, 'qwerty').toString()
+		token: jwt.sign({_id: userOneId, access: 'auth'}, process.env.JWT_SECRET).toString()
 	}]
 }, {
 	_id: userTwoId,
@@ -32,7 +31,7 @@ const users = [{
 	password: 'password2',
 	tokens: [{
 		access: 'auth',
-		token: jwt.sign({_id: userTwoId, access: 'auth'}, 'qwerty').toString()
+		token: jwt.sign({_id: userTwoId, access: 'auth'}, process.env.JWT_SECRET).toString()
 	}]
 }];
 
